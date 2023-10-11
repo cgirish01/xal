@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="container">
+    <h1>Welcome to Your Dashboard</h1>
+    
+    <!-- Section to Create a New Process -->
+    <div id="create-process-section" class="form-section">
+        <h2>Create New Process</h2>
+        <label>Select 5 users:</label>
+        <select id="user1"></select>
+        <select id="user2"></select>
+        <select id="user3"></select>
+        <select id="user4"></select>
+        <select id="user5"></select>
+        <label>Description:</label>
+        <textarea id="process-description" placeholder="Describe the process"></textarea>
+        <button onclick="createNewProcess()">Create Process</button>
+    </div>
+    
+    <!-- Section to View All Processes -->
+    <div id="all-processes">
+        <h2>Your Processes</h2>
+        <ul id="process-list">
+            <!-- Processes will be listed here -->
+        </ul>
+    </div>
+</div>
+
+<script src="scripts.js"></script>
+</body>
+</html>
