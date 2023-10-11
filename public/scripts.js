@@ -194,16 +194,105 @@ function createNewProcess() {
 //     });
 // }
 
+function displayProcess(process, container) {
+    const processContainer = document.createElement('div');
+    const processName = document.createElement('p');
+    processName.textContent = process.description;
+    processContainer.appendChild(processName);
+
+    // Assuming each process has a `users` array with their comments and pictures
+    process.users.forEach(user => {
+        const userContainer = document.createElement('div');
+        const userName = document.createElement('p');
+        userName.textContent = user.name;
+        const userComment = document.createElement('p');
+        userComment.textContent = user.comment;
+
+        const userImage = document.createElement('img');
+        if (user.picture_path) {
+            userImage.src = user.picture_path;
+        } else {
+            userImage.alt = 'No image uploaded';
+        }
+
+        userContainer.appendChild(userName);
+        userContainer.appendChild(userComment);
+        userContainer.appendChild(userImage);
+
+        processContainer.appendChild(userContainer);
+    });
+
+    container.appendChild(processContainer);
+}
+
+async function submitSignOff(processId) {
+    console.log("processId")
+    // const processId = event.target.parentElement.getAttribute('data-process-id');
+    console.log("started process")
+    const comment = document.getElementById(`signoff-comment-${processId}`).value;
+    const imageFile = document.getElementById(`signoff-image-${processId}`).files[0];
+    let imagePath = null;
+
+    // First, upload the image and get the path
+    if (imageFile) {
+        const formData = new FormData();
+        formData.append('image', imageFile);
+
+        try {
+            const imageResponse = await fetch('api/processes/uploadImage', {
+                method: 'POST',
+                body: formData
+            });
+
+            const imageData = await imageResponse.json();
+            if (imageData.error) {
+                alert('Image upload failed: ' + imageData.error);
+                return;
+            }
+
+            imagePath = imageData.path;
+        } catch (error) {
+            alert('Image upload error: ' + error);
+            return;
+        }
+    }
+    console.log("image path", imagePath)
+    console.log("process id", processId)
+    console.log("comment", comment)
+    // Then, proceed with the sign-off process
+    fetch('/api/processes/signoff', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            processId,
+            comment,
+            picturePath: imagePath
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            alert('Failed to submit signoff: ' + data.error);
+        } else {
+            alert('Signoff submitted successfully!');
+        }
+    })
+    .catch(error => {
+        alert('Error: ' + error);
+    });
+}
+
+
 function loadMyProcesses() {
     fetch('/api/processes/createdByMe')
     .then(response => response.json())
     .then(data => {
         const processList = document.getElementById('created-process-list');
-        processList.innerHTML = "";  // clear any existing content
+        processList.innerHTML = "";
         data.forEach(process => {
-            const li = document.createElement('li');
-            li.textContent = process.description;
-            processList.appendChild(li);
+            displayProcess(process, processList);
         });
     })
     .catch(error => {
@@ -211,22 +300,112 @@ function loadMyProcesses() {
     });
 }
 
+// function loadSignoffProcesses() {
+//     fetch('/api/processes/needsSignoff')
+//     .then(response => response.json())
+//     .then(data => {
+//         const processList = document.getElementById('signoff-process-list');
+//         processList.innerHTML = "";
+//         data.forEach(process => {
+//             displayProcess(process, processList);
+//         });
+//     })
+//     .catch(error => {
+//         alert('Error: ' + error);
+//     });
+// }
+
 function loadSignoffProcesses() {
     fetch('/api/processes/needsSignoff')
     .then(response => response.json())
     .then(data => {
         const processList = document.getElementById('signoff-process-list');
-        processList.innerHTML = "";  // clear any existing content
+        processList.innerHTML = "";
         data.forEach(process => {
-            const li = document.createElement('li');
-            li.textContent = process.description;
-            processList.appendChild(li);
+            console.log("process", process.id)
+            displayProcessForSignoff(process, processList);
         });
     })
     .catch(error => {
         alert('Error: ' + error);
     });
 }
+
+function displayProcessForSignoff(process, container) {
+    const processContainer = document.createElement('div');
+    processContainer.classList.add('process-item');
+
+    const processName = document.createElement('p');
+    processName.textContent = process.description;
+    processContainer.appendChild(processName);
+
+    process.users.forEach(user => {
+        const userContainer = document.createElement('div');
+        userContainer.classList.add('user-item');
+
+        const userName = document.createElement('p');
+        userName.textContent = user.name;
+
+        const userComment = document.createElement('p');
+        userComment.textContent = user.comment || "No comment";
+
+        const userImage = document.createElement('img');
+        if (user.picture_path) {
+            userImage.src = user.picture_path;
+        } else {
+            userImage.alt = 'No image uploaded';
+        }
+
+        userContainer.appendChild(userName);
+        userContainer.appendChild(userComment);
+        userContainer.appendChild(userImage);
+
+        processContainer.appendChild(userContainer);
+    });
+
+    const signoffForm = document.createElement('div');
+    signoffForm.classList.add('sign-off-form');
+
+    const commentLabel = document.createElement('label');
+    commentLabel.textContent = "Comment:";
+    const commentTextarea = document.createElement('textarea');
+    commentTextarea.id = `signoff-comment-${process.id}`;
+    // signoffForm.setAttribute('data-process-id', process.id);
+
+
+    const uploadLabel = document.createElement('label');
+    uploadLabel.textContent = "Upload Image:";
+    const uploadInput = document.createElement('input');
+    uploadInput.type = "file";
+    uploadInput.id = `signoff-image-${process.id}`;
+
+    const submitButton = document.createElement('button');
+    submitButton.textContent = "Submit Sign-off";
+    console.log("submit button", process.id)
+    submitButton.onclick = submitSignOff.bind(null, process.id);
+
+    signoffForm.appendChild(commentLabel);
+    signoffForm.appendChild(commentTextarea);
+    signoffForm.appendChild(uploadLabel);
+    signoffForm.appendChild(uploadInput);
+    signoffForm.appendChild(submitButton);
+
+    processContainer.appendChild(signoffForm);
+
+    container.appendChild(processContainer);
+}
+
+// function displayProcess(process, container) {
+//     const processElement = document.createElement('div');
+//     processElement.classList.add('process-item');
+
+//     const processDescription = document.createElement('p');
+//     processDescription.textContent = process.description;
+
+//     processElement.appendChild(processDescription);
+//     container.appendChild(processElement);
+// }
+
 
 
 loadMyProcesses();

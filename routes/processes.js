@@ -63,6 +63,13 @@ const storage = multer.diskStorage({
 });
 
 const upload = multer({ storage: storage });
+router.post('/uploadImage', upload.single('image'), (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: 'No file uploaded.' });
+  }
+
+  res.json({ path: req.file.path });
+});
 
 
 router.get('/', async (req, res) => {
@@ -129,7 +136,10 @@ router.post('/signoff/:processId', upload.single('processImage'), async (req, re
 
 router.get('/createdByMe', async (req, res) => {
     try {
+        console.log("reached created by me");
+        console.log(req.session.user);
         const processes = await pool.query('SELECT * FROM processes WHERE created_by_user_id = $1', [req.session.user.id]);
+        console.log(processes.rows);
         res.json(processes.rows);
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -138,13 +148,44 @@ router.get('/createdByMe', async (req, res) => {
 
 router.get('/needsSignoff', async (req, res) => {
     try {
-        const processes = await pool.query(`
+        const processesResults = await pool.query(`
             SELECT p.* 
             FROM processes p 
             JOIN sign_offs s ON p.id = s.process_id 
             WHERE s.user_id = $1 AND s.signed_off = FALSE
         `, [req.session.user.id]);
-        res.json(processes.rows);
+
+        const processes = processesResults.rows;
+        for(let process of processes) {
+            const usersResults = await pool.query(`
+                SELECT u.name, s.comment, s.picture_path 
+                FROM users u 
+                JOIN sign_offs s ON u.id = s.user_id 
+                WHERE s.process_id = $1
+            `, [process.id]);
+            // console.log(usersResults.rows);
+            process.users = usersResults.rows;
+        }
+
+        // console.log("need signoff");
+        // console.log(processes);
+        res.json(processes);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+router.post('/signoff', async (req, res) => {
+    try {
+        const { processId, comment, picturePath } = req.body;
+        const userId = req.session.user.id;
+
+        await pool.query(
+            'UPDATE sign_offs SET comment=$1, picture_path=$2, signed_off=TRUE WHERE process_id=$3 AND user_id=$4',
+            [comment, picturePath, processId, userId]
+        );
+
+        res.json({ message: "Signoff updated successfully!" });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
