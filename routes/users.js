@@ -43,13 +43,7 @@ router.post('/login', async (req, res) => {
 
         // Respond with the userData object
         res.json(userData);
-        // console.log(res);
-
-        // res.json({
-        //     id: user.rows[0].id,
-        //     name: user.rows[0].name,
-        //     email: user.rows[0].email
-        // });
+ 
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

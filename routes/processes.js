@@ -12,15 +12,6 @@ function ensureAuthenticated(req, res, next) {
 }
 router.use(ensureAuthenticated);
 
-// router.get('/users', async (req, res) => {
-//     try {
-//         const users = await pool.query('SELECT id, name FROM users');
-//         res.json(users.rows);
-//     } catch (err) {
-//         res.status(500).json({ error: err.message });
-//     }
-// });
-
 router.get('/users', async (req, res) => {
     try {
         const users = await pool.query('SELECT id, name FROM users WHERE id <> $1', [req.session.user.id]);
@@ -46,9 +37,7 @@ router.post('/', async (req, res) => {
         console.log(req.session.user)
         const newProcess = await pool.query(
             'INSERT INTO processes (description, created_by_user_id) VALUES ($1, $2) RETURNING id',
-            // 'INSERT INTO processes (description) VALUES ($1) RETURNING id',
-            [description, req.session.user.id] // Assuming you've set req.user after login
-            // [description]
+            [description, req.session.user.id] 
         );
 
         const processId = newProcess.rows[0].id;
@@ -66,10 +55,4 @@ router.post('/', async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
-
-// Add more routes related to processes as needed...
-
-
-
-
 module.exports = router;
