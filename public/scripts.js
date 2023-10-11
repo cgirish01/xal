@@ -120,7 +120,7 @@ function createNewProcess() {
 
     const description = document.getElementById('process-description').value;
     console.log(description);  // Debug point
-    
+
     fetch('/api/processes', {
         method: 'POST',
         headers: {
@@ -147,11 +147,59 @@ function createNewProcess() {
 // Call this function when the dashboard page loads to populate the dropdowns:
 
 
-function loadProcesses() {
-    fetch('/api/processes')
+// function loadProcesses() {
+//     fetch('/api/processes')
+//     .then(response => response.json())
+//     .then(data => {
+//         const createdProcessList = document.getElementById('created-process-list');
+//         const signoffProcessList = document.getElementById('signoff-process-list');
+
+//         data.forEach(process => {
+//             const li = document.createElement('li');
+//             li.textContent = process.description;
+
+//             // Assuming you have a field in the process object to determine if it's created by the user or requires sign-off
+//             if (process.createdByUser) {
+//                 createdProcessList.appendChild(li);
+//             } else {
+//                 signoffProcessList.appendChild(li);
+
+//                 // Add comment and sign-off functionality here
+//                 const form = document.createElement('form');
+//                 form.action = `/api/processes/signoff/${process.id}`;
+//                 form.method = "post";
+//                 form.enctype = "multipart/form-data";
+
+//                 const commentBox = document.createElement('textarea');
+//                 commentBox.name = "comment";
+//                 form.appendChild(commentBox);
+
+//                 const imageUpload = document.createElement('input');
+//                 imageUpload.type = 'file';
+//                 imageUpload.name = "processImage";
+//                 imageUpload.accept = 'image/*';
+//                 form.appendChild(imageUpload);
+
+//                 const submitButton = document.createElement('button');
+//                 submitButton.type = 'submit';
+//                 submitButton.textContent = 'Sign Off';
+//                 form.appendChild(submitButton);
+
+//                 li.appendChild(form);
+//             }
+//         });
+//     })
+//     .catch(error => {
+//         alert('Error: ' + error);
+//     });
+// }
+
+function loadMyProcesses() {
+    fetch('/api/processes/createdByMe')
     .then(response => response.json())
     .then(data => {
-        const processList = document.getElementById('process-list');
+        const processList = document.getElementById('created-process-list');
+        processList.innerHTML = "";  // clear any existing content
         data.forEach(process => {
             const li = document.createElement('li');
             li.textContent = process.description;
@@ -162,3 +210,24 @@ function loadProcesses() {
         alert('Error: ' + error);
     });
 }
+
+function loadSignoffProcesses() {
+    fetch('/api/processes/needsSignoff')
+    .then(response => response.json())
+    .then(data => {
+        const processList = document.getElementById('signoff-process-list');
+        processList.innerHTML = "";  // clear any existing content
+        data.forEach(process => {
+            const li = document.createElement('li');
+            li.textContent = process.description;
+            processList.appendChild(li);
+        });
+    })
+    .catch(error => {
+        alert('Error: ' + error);
+    });
+}
+
+
+loadMyProcesses();
+loadSignoffProcesses();

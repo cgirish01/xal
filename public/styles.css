@@ -6,7 +6,7 @@ body {
 }
 
 .container {
-    max-width: 400px;
+    max-width: 600px;
     margin: 50px auto;
     padding: 20px;
     background-color: #fff;
@@ -41,7 +41,7 @@ button:hover {
 }
 
 .form-section {
-    margin-top: 20px;
+    margin-top: 30px;
 }
 
 #options-section {
