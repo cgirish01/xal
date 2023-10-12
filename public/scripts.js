@@ -103,12 +103,19 @@ function populateUserDropdowns() {
 populateUserDropdowns();
 
 function createNewProcess() {
+    // const users = [
+    //     document.getElementById('user1').value,
+    //     document.getElementById('user2').value,
+    //     document.getElementById('user3').value,
+    //     document.getElementById('user4').value,
+    //     document.getElementById('user5').value
+    // ];
     const users = [
-        document.getElementById('user1').value,
-        document.getElementById('user2').value,
-        document.getElementById('user3').value,
-        document.getElementById('user4').value,
-        document.getElementById('user5').value
+        {id: document.getElementById('user1').value, canSeeComments: document.getElementById('user1-canSeeComments').checked},
+        {id: document.getElementById('user2').value, canSeeComments: document.getElementById('user2-canSeeComments').checked},
+        {id: document.getElementById('user3').value, canSeeComments: document.getElementById('user3-canSeeComments').checked},
+        {id: document.getElementById('user4').value, canSeeComments: document.getElementById('user4-canSeeComments').checked},
+        {id: document.getElementById('user5').value, canSeeComments: document.getElementById('user5-canSeeComments').checked}
     ];
 
     const uniqueUsers = [...new Set(users)];

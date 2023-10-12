@@ -31,6 +31,7 @@ async function createTables() {
         user_id INTEGER REFERENCES users(id),
         comment TEXT,
         picture_path TEXT,
+        can_see_comments BOOLEAN DEFAULT FALSE,
         signed_off BOOLEAN DEFAULT FALSE
       );
     `);

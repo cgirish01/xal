@@ -113,19 +113,25 @@ router.post('/', async (req, res) => {
             'INSERT INTO processes (description, created_by_user_id) VALUES ($1, $2) RETURNING id',
             [description, req.session.user.id] 
         );
+        console.log("process updated");
 
         const processId = newProcess.rows[0].id;
 
         // Loop through users and insert them in the sign_offs table
         for (let i = 0; i < users.length; i++) {
+            console.log([processId, users[i].id, users[i].canSeeComments]);
             await pool.query(
-                'INSERT INTO sign_offs (process_id, user_id) VALUES ($1, $2)',
-                [processId, users[i]]
+                // 'INSERT INTO sign_offs (process_id, user_id) VALUES ($1, $2)',
+                // [processId, users[i]]
+                'INSERT INTO sign_offs (process_id, user_id, can_see_comments) VALUES ($1, $2, $3)',
+                [processId, users[i].id, users[i].canSeeComments]
             );
         }
-        const userEmailsResults = await pool.query('SELECT email FROM users WHERE id = ANY($1)', [users]);
+        console.log("users updated", [users]);
+        const userIds = users.map(user => user.id);
+        const userEmailsResults = await pool.query('SELECT email FROM users WHERE id = ANY($1)', [userIds]);
         const userEmails = userEmailsResults.rows.map(row => row.email);
-
+        console.log("emails seent");
         // Send emails
         // sendEmailToUsers(userEmails, description);
 
@@ -202,7 +208,7 @@ router.get('/createdByMe', async (req, res) => {
 router.get('/needsSignoff', async (req, res) => {
     try {
         const processesResults = await pool.query(`
-            SELECT p.* 
+            SELECT p.* ,s.can_see_comments 
             FROM processes p 
             JOIN sign_offs s ON p.id = s.process_id 
             WHERE s.user_id = $1 AND s.signed_off = FALSE
@@ -210,15 +216,26 @@ router.get('/needsSignoff', async (req, res) => {
 
         const processes = processesResults.rows;
         for(let process of processes) {
-            const usersResults = await pool.query(`
-                SELECT u.name, s.comment, s.picture_path 
-                FROM users u 
-                JOIN sign_offs s ON u.id = s.user_id 
-                WHERE s.process_id = $1
-            `, [process.id]);
-            // console.log(usersResults.rows);
-            process.users = usersResults.rows;
+            if (process.can_see_comments) {
+                const usersResults = await pool.query(`
+                    SELECT u.name, s.comment, s.picture_path 
+                    FROM users u 
+                    JOIN sign_offs s ON u.id = s.user_id 
+                    WHERE s.process_id = $1
+                `, [process.id]);
+                process.users = usersResults.rows;
+            } else {
+                // If the user cannot see comments, just fetch names and pictures without comments.
+                const usersResults = await pool.query(`
+                    SELECT u.name, s.picture_path 
+                    FROM users u 
+                    JOIN sign_offs s ON u.id = s.user_id 
+                    WHERE s.process_id = $1
+                `, [process.id]);
+                process.users = usersResults.rows.map(user => ({ ...user, comment: 'Hidden' }));
+            }
         }
+
 
         // console.log("need signoff");
         // console.log(processes);
