@@ -474,6 +474,25 @@ async function init() {
     await updateWalletButtonStatus();
 }
 
+async function logoutUser() {
+    try {
+        const response = await fetch('/api/processes/logout', {
+            method: 'POST'
+        });
+
+        if (response.status === 200) {
+            // Successfully logged out. Redirect to login page or wherever you want.
+            window.location.href = '/'; // Change this to your login page's path
+        } else {
+            console.error('Logout failed');
+            alert('Failed to logout. Please try again.');
+        }
+    } catch (error) {
+        console.error('Error during logout:', error);
+    }
+}
+
+
 function checkIfUserIsLoggedIn() {
     fetch('/api/processes/isAuthenticated')
     .then(response => response.json())
@@ -485,6 +504,8 @@ function checkIfUserIsLoggedIn() {
             loadSignoffProcesses();
             loadProcessesToBeSignedOffByYou();
             document.addEventListener('DOMContentLoaded', init);
+            document.getElementById('logout-button').addEventListener('click', logoutUser);
+
 
         }
     })

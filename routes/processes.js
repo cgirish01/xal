@@ -365,6 +365,17 @@ router.post('/updateWallet', async (req, res) => {
         res.status(500).send({ error: 'Internal server error' });
     }
 });
+router.post('/logout', (req, res) => {
+    req.session.destroy((err) => {
+        if(err) {
+            return res.status(500).json({error: 'Failed to end session.'});
+        }
+
+        res.clearCookie('session-name'); // Replace 'session-name' with the name you use for your cookie
+        res.status(200).send('Logged out');
+    });
+});
+
 
 
 
