@@ -100,7 +100,7 @@ function populateUserDropdowns() {
     });
 }
 
-populateUserDropdowns();
+// populateUserDropdowns();
 
 function createNewProcess() {
     // const users = [
@@ -432,7 +432,7 @@ loadNotifications();
 
 
 
-
+populateUserDropdowns();
 loadMyProcesses();
 loadSignoffProcesses();
 loadProcessesToBeSignedOffByYou();

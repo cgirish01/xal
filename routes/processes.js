@@ -5,6 +5,7 @@ const path = require('path');
 const nodemailer = require('nodemailer');
 const router = express.Router();
 const sharp = require('sharp');
+require('dotenv').config();
 
 
 function ensureAuthenticated(req, res, next) {
@@ -24,27 +25,28 @@ router.get('/users', async (req, res) => {
     }
 });
 const transporter = nodemailer.createTransport({
-    host: 'smtp.rediffmail.com',
-    port: 2525,
-    secure: false,  // use SSL
+    host: process.env.SMTP_HOST,
+    port: process.env.SMTP_PORT,
     auth: {
-        user: 'shadowx158@rediffmail.com',
-        pass: 'Devil#123'
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS
     },
     tls: {
         rejectUnauthorized: false
     }
 });
 
-const sendEmailToUsers = async (userEmails, processInfo) => {
+
+const sendEmailToUsers = async (userEmails, subject, text, processInfo) => {
   let mailOptions = {
-    from: 'shadowx158@rediffmail.com',
+    from: 'lori.homenick88@ethereal.email',
     to: userEmails.join(','),
-    subject: 'New Process Created',
-    text: `A new process has been created: ${processInfo}`
+    subject: subject,
+    text: `${text}: ${processInfo}`
   };
-    console.log(mailOptions);
   
+  console.log(mailOptions);
+
   try {
     let info = await transporter.sendMail(mailOptions);
     console.log(`Emails sent: ${info.response}`);
@@ -52,6 +54,7 @@ const sendEmailToUsers = async (userEmails, processInfo) => {
     console.error(`Error sending email: ${error}`);
   }
 }
+
 
 // Set up storage with multer
 const storage = multer.diskStorage({
@@ -64,13 +67,7 @@ const storage = multer.diskStorage({
 });
 
 const upload = multer({ storage: storage });
-// router.post('/uploadImage', upload.single('image'), (req, res) => {
-//   if (!req.file) {
-//     return res.status(400).json({ error: 'No file uploaded.' });
-//   }
 
-//   res.json({ path: req.file.path });
-// });
 router.post('/uploadImage', upload.single('image'), async (req, res) => {
     if (!req.file) {
         return res.status(400).json({ error: 'No file uploaded.' });
@@ -133,7 +130,7 @@ router.post('/', async (req, res) => {
         const userEmails = userEmailsResults.rows.map(row => row.email);
         console.log("emails seent");
         // Send emails
-        // sendEmailToUsers(userEmails, description);
+        sendEmailToUsers(userEmails, "process crated", "new process has been created " ,description);
 
         res.json({ message: "Process created successfully!" });
     } catch (err) {
@@ -141,25 +138,6 @@ router.post('/', async (req, res) => {
     }
 });
 
-router.post('/signoff/:processId', upload.single('processImage'), async (req, res) => {
-    try {
-        const processId = req.params.processId;
-        const comment = req.body.comment;
-        const imageFile = req.file.filename;  // This gets the filename saved by multer
-        
-        // Store comment and imageFile in your database against the processId and userId
-        // For simplicity, we assume a sign_offs table which has a column for comment and image
-
-        await pool.query(
-            'UPDATE sign_offs SET comment = $1, image = $2 WHERE process_id = $3 AND user_id = $4',
-            [comment, imageFile, processId, req.session.user.id]
-        );
-
-        res.json({ message: "Signed off successfully!" });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
 
 
 router.get('/createdByMe', async (req, res) => {
@@ -266,11 +244,19 @@ router.post('/signoff', async (req, res) => {
     const signOffsResults = await pool.query(`
         SELECT * FROM sign_offs WHERE process_id = $1
     `, [processId]);
+        
+    const creatorEmailsResults = await pool.query('SELECT email FROM users WHERE id = $1', [createdByUserId]);
+    const completionEmail = creatorEmailsResults.rows.map(row => row.email);
+    console.log("emails seent");
+    // Send emails
+    
 
     if(signOffsResults.rows.every(row => row.signed_off)) {
         // Send email to all parties. Use your email sending logic here.
-        console.log("All signed off");
-        // Notify the creator that everyone has signed off
+        // console.log("All signed off");
+
+        sendEmailToUsers(completionEmail, "everyone signed of", "everyone signed off for process" ,processName);
+        
         await pool.query(`
             INSERT INTO notifications(user_id, process_id, message, status)
             VALUES($1, $2, $3, 'unread')
