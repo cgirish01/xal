@@ -338,41 +338,7 @@ function displayProcessForSignoff(process, container) {
 
     container.appendChild(processContainer);
 }
-function displayProcess(process, container) {
-    console.log("process display started", process)
-    const processElement = document.createElement('div');
-    processElement.classList.add('process-item');
 
-    const processDescription = document.createElement('p');
-    processDescription.textContent = process.description;
-    processElement.appendChild(processDescription);
-
-    // Assuming each process has signOffs containing each user's comment, name, and image
-    process.signOffs.forEach(signOff => {
-        const userContainer = document.createElement('div');
-        userContainer.classList.add('user-container');
-
-        const userName = document.createElement('p');
-        userName.textContent = signOff.userName;
-        userContainer.appendChild(userName);
-
-        const userComment = document.createElement('p');
-        userComment.textContent = signOff.comment;
-        userContainer.appendChild(userComment);
-
-        const userImage = document.createElement('img');
-        if (signOff.picture_path) {
-            userImage.src = signOff.picture_path;
-        } else {
-            userImage.alt = 'No image uploaded';
-        }
-        userContainer.appendChild(userImage);
-
-        processElement.appendChild(userContainer);
-    });
-
-    container.appendChild(processElement);
-}
 
 
 
