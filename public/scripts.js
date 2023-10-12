@@ -354,8 +354,25 @@ function displayProcessForSignoff(process, container) {
     container.appendChild(processContainer);
 }
 
+function loadProcessesToBeSignedOffByYou() {
+    fetch('/api/processes/signedOffByYou')
+    .then(response => response.json())
+    .then(data => {
+        const processList = document.getElementById('toBeSignedOffByYou-list');
+        processList.innerHTML = "";
+        data.forEach(process => {
+            displayProcessForSignoff(process, processList); // Reuse the same function since the display logic is similar
+        });
+    })
+    .catch(error => {
+        alert('Error: ' + error);
+    });
+}
+
+
 
 
 
 loadMyProcesses();
 loadSignoffProcesses();
+loadProcessesToBeSignedOffByYou();

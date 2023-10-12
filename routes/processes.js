@@ -261,4 +261,80 @@ router.post('/signoff', async (req, res) => {
     }
 });
 
+// router.get('/signedOffByYou', async (req, res) => {
+//     try {
+//         // Fetch processes that the user has signed off, but the entire process isn't completed
+//         const processesResults = await pool.query(`
+//             SELECT p.*
+//             FROM processes p 
+//             JOIN sign_offs s1 ON p.id = s1.process_id 
+//             WHERE s1.user_id = $1 AND s1.signed_off = TRUE
+//             AND EXISTS (
+//                 SELECT 1 FROM sign_offs s2 
+//                 WHERE s2.process_id = p.id AND s2.signed_off = FALSE
+//             )
+//         `, [req.session.user.id]);
+
+//         const processes = processesResults.rows;
+//         for(let process of processes) {
+//             const usersResults = await pool.query(`
+//                 SELECT u.name, s.comment, s.picture_path, s.can_see_comments
+//                 FROM users u 
+//                 JOIN sign_offs s ON u.id = s.user_id 
+//                 WHERE s.process_id = $1
+//             `, [process.id]);
+
+//             // Decide if the comment should be shown or hidden based on `can_see_comments`
+//             process.users = usersResults.rows.map(user => {
+//                 return {
+//                     ...user,
+//                     comment: user.can_see_comments ? user.comment : 'Hidden'
+//                 };
+//             });
+//         }
+        
+//         res.json(processes);
+//     } catch (err) {
+//         res.status(500).json({ error: err.message });
+//     }
+// });
+router.get('/signedOffByYou', async (req, res) => {
+   try {
+        const processesResults = await pool.query(`
+            SELECT p.* ,s.can_see_comments 
+            FROM processes p 
+            JOIN sign_offs s ON p.id = s.process_id 
+            WHERE s.user_id = $1 AND s.signed_off = TRUE
+        `, [req.session.user.id]);
+
+        const processes = processesResults.rows;
+        for(let process of processes) {
+            if (process.can_see_comments) {
+                const usersResults = await pool.query(`
+                    SELECT u.name, s.comment, s.picture_path 
+                    FROM users u 
+                    JOIN sign_offs s ON u.id = s.user_id 
+                    WHERE s.process_id = $1
+                `, [process.id]);
+                process.users = usersResults.rows;
+            } else {
+                // If the user cannot see comments, just fetch names and pictures without comments.
+                const usersResults = await pool.query(`
+                    SELECT u.name, s.picture_path 
+                    FROM users u 
+                    JOIN sign_offs s ON u.id = s.user_id 
+                    WHERE s.process_id = $1
+                `, [process.id]);
+                process.users = usersResults.rows.map(user => ({ ...user, comment: 'Hidden' }));
+            }
+        }
+
+
+        res.json(processes);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+
 module.exports = router;
