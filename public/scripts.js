@@ -70,6 +70,13 @@ function hideAllForms() {
     document.getElementById('login-section').style.display = 'none';
 }
 
+function ensureAuthenticated(req, res, next) {
+    if (req.session && req.session.user) {
+        next();  // User is authenticated, proceed to next middleware/route handler
+    } else {
+        res.status(401).send('Unauthorized');  // No session user found, respond with 401
+    }
+}
 
 
 function populateUserDropdowns() {
@@ -428,11 +435,34 @@ async function markAsRead(notificationId) {
 
 
 // On page load or using setInterval:
-loadNotifications();
 
+function checkIfUserIsLoggedIn() {
+    fetch('/api/processes/isAuthenticated')
+    .then(response => response.json())
+    .then(data => {
+        if (data.isAuthenticated) {
+            populateUserDropdowns();
+            loadNotifications();
+            populateUserDropdowns();
+            loadMyProcesses();
+            loadSignoffProcesses();
+            loadProcessesToBeSignedOffByYou();
+        }
+    })
+    .catch(error => {
+        console.error("Error checking authentication status:", error);
+    });
+}
 
+// Call this function when page loads or when you need to check
+checkIfUserIsLoggedIn();
 
-populateUserDropdowns();
-loadMyProcesses();
-loadSignoffProcesses();
-loadProcessesToBeSignedOffByYou();
+// if (userIsLoggedIn) {  // Replace `userIsLoggedIn` with whatever check you use on the client side
+//     populateUserDropdowns();
+// }
+
+// loadNotifications();
+// populateUserDropdowns();
+// loadMyProcesses();
+// loadSignoffProcesses();
+// loadProcessesToBeSignedOffByYou();

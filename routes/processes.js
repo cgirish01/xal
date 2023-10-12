@@ -16,6 +16,14 @@ function ensureAuthenticated(req, res, next) {
 }
 router.use(ensureAuthenticated);
 
+router.get('/isAuthenticated', (req, res) => {
+    if (req.session && req.session.user) {
+        res.json({ isAuthenticated: true });
+    } else {
+        res.json({ isAuthenticated: false });
+    }
+});
+
 router.get('/users', async (req, res) => {
     try {
         const users = await pool.query('SELECT id, name FROM users WHERE id <> $1', [req.session.user.id]);
