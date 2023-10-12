@@ -149,8 +149,19 @@ async function submitSignOff(processId) {
     console.log("processId")
     // const processId = event.target.parentElement.getAttribute('data-process-id');
     console.log("started process")
-    const comment = document.getElementById(`signoff-comment-${processId}`).value;
+    const comment = document.getElementById(`signoff-comment-${processId}`).value.trim();
     const imageFile = document.getElementById(`signoff-image-${processId}`).files[0];
+
+    if (!comment) {
+        alert('Please add a comment before submitting.');
+        return; // exit the function
+    }
+
+    // Check if an image file is provided
+    if (!imageFile) {
+        alert('Please select an image for upload before submitting.');
+        return; // exit the function
+    }
     let imagePath = null;
 
     // First, upload the image and get the path
@@ -275,6 +286,8 @@ function loadSignoffProcesses() {
     });
 }
 
+
+
 function displayProcessForSignoff(process, container) {
     const processContainer = document.createElement('div');
     processContainer.classList.add('process-item');
@@ -289,9 +302,7 @@ function displayProcessForSignoff(process, container) {
 
         const userName = document.createElement('p');
         userName.textContent = user.name;
-
-        const userComment = document.createElement('p');
-        userComment.textContent = user.comment || "No comment";
+        userContainer.appendChild(userName);
 
         const userImage = document.createElement('img');
         if (user.picture_path) {
@@ -299,10 +310,11 @@ function displayProcessForSignoff(process, container) {
         } else {
             userImage.alt = 'No image uploaded';
         }
-
-        userContainer.appendChild(userName);
-        userContainer.appendChild(userComment);
         userContainer.appendChild(userImage);
+
+        const userComment = document.createElement('p');
+        userComment.textContent = user.comment || "No comment";
+        userContainer.appendChild(userComment);
 
         processContainer.appendChild(userContainer);
     });
@@ -314,24 +326,20 @@ function displayProcessForSignoff(process, container) {
     commentLabel.textContent = "Comment:";
     const commentTextarea = document.createElement('textarea');
     commentTextarea.id = `signoff-comment-${process.id}`;
-    // signoffForm.setAttribute('data-process-id', process.id);
-
+    signoffForm.appendChild(commentLabel);
+    signoffForm.appendChild(commentTextarea);
 
     const uploadLabel = document.createElement('label');
     uploadLabel.textContent = "Upload Image:";
     const uploadInput = document.createElement('input');
     uploadInput.type = "file";
     uploadInput.id = `signoff-image-${process.id}`;
+    signoffForm.appendChild(uploadLabel);
+    signoffForm.appendChild(uploadInput);
 
     const submitButton = document.createElement('button');
     submitButton.textContent = "Submit Sign-off";
-    console.log("submit button", process.id)
     submitButton.onclick = submitSignOff.bind(null, process.id);
-
-    signoffForm.appendChild(commentLabel);
-    signoffForm.appendChild(commentTextarea);
-    signoffForm.appendChild(uploadLabel);
-    signoffForm.appendChild(uploadInput);
     signoffForm.appendChild(submitButton);
 
     processContainer.appendChild(signoffForm);

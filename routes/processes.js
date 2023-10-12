@@ -64,12 +64,32 @@ const storage = multer.diskStorage({
 });
 
 const upload = multer({ storage: storage });
-router.post('/uploadImage', upload.single('image'), (req, res) => {
-  if (!req.file) {
-    return res.status(400).json({ error: 'No file uploaded.' });
-  }
+// router.post('/uploadImage', upload.single('image'), (req, res) => {
+//   if (!req.file) {
+//     return res.status(400).json({ error: 'No file uploaded.' });
+//   }
 
-  res.json({ path: req.file.path });
+//   res.json({ path: req.file.path });
+// });
+router.post('/uploadImage', upload.single('image'), async (req, res) => {
+    if (!req.file) {
+        return res.status(400).json({ error: 'No file uploaded.' });
+    }
+
+    // Resizing logic
+    const resizedImagePath = `./uploads/resized-${req.file.filename}`;
+    try {
+        await sharp(req.file.path)
+            .resize(30, 30) // Resize to 3cm x 3cm (assuming 10px per cm)
+            .toFile(resizedImagePath);
+
+        // Optional: If you want to delete the original image after resizing
+        // fs.unlinkSync(req.file.path);
+
+        res.json({ path: resizedImagePath });
+    } catch (error) {
+        res.status(500).json({ error: "Error resizing the image." });
+    }
 });
 
 

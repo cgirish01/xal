@@ -60,3 +60,26 @@ button:hover {
     gap: 10px;
     margin: 10px 0;
 }
+
+.process-item {
+    border: 1px solid #ccc;
+    padding: 10px;
+    margin: 10px 0;
+}
+
+.user-item {
+    display: flex;
+    justify-content: space-between;
+    /* This will spread the items apart */
+    padding: 5px 0;
+}
+
+.user-item p,
+.user-item img {
+    margin: 0 10px;
+    /* Adjust as needed */
+}
+
+.sign-off-form {
+    margin-top: 10px;
+}
