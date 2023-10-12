@@ -240,13 +240,11 @@ function loadMyProcesses() {
     });
 }
 function displayProcessWithUsers(process, container) {
-    console.log("process",process);
     const processContainer = document.createElement('div');
 
     const processTitle = document.createElement('h3');
     processTitle.textContent = process.description;
     processContainer.appendChild(processTitle);
-    console.log("p2",process.signOffs);
     process.signOffs.forEach(user => {
         const userContainer = document.createElement('div');
         userContainer.classList.add('user-container');
@@ -369,6 +367,68 @@ function loadProcessesToBeSignedOffByYou() {
     });
 }
 
+
+async function loadNotifications() {
+    try {
+        const response = await fetch('/api/processes/notifications');
+        console.log("Received:", response);
+
+        if (!response.ok) {
+            console.error("Failed to fetch notifications:", response.statusText);
+            return;
+        }
+
+        const data = await response.json();
+        console.log('Data:', data);
+
+        displayNotifications(data);
+    } catch (error) {
+        console.error("Error loading notifications:", error);
+    }
+}
+
+function displayNotifications(notifications) {
+    const notificationsList = document.getElementById('notifications-list');
+    if (!notificationsList) {
+        console.error("No element with ID 'notifications-list' found.");
+        return;
+    }
+
+    notificationsList.innerHTML = '';
+
+    notifications.forEach(notification => {
+        const item = document.createElement('li');
+        item.textContent = notification.message;
+        item.onclick = () => markAsRead(notification.id);
+        notificationsList.appendChild(item);
+    });
+}
+
+async function markAsRead(notificationId) {
+    try {
+        const response = await fetch('/api/processes/notifications/mark-as-read', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ notificationId }),
+        });
+
+        if (!response.ok) {
+            console.error("Failed to mark notification as read:", response.statusText);
+            return;
+        }
+
+        // If successful, refresh the notifications
+        loadNotifications();
+    } catch (error) {
+        console.error("Error marking notification as read:", error);
+    }
+}
+
+
+// On page load or using setInterval:
+loadNotifications();
 
 
 

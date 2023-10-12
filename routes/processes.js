@@ -161,17 +161,6 @@ router.post('/signoff/:processId', upload.single('processImage'), async (req, re
     }
 });
 
-// router.get('/createdByMe', async (req, res) => {
-//     try {
-//         // console.log("reached created by me");
-//         // console.log(req.session.user);
-//         const processes = await pool.query('SELECT * FROM processes WHERE created_by_user_id = $1', [req.session.user.id]);
-//         console.log(processes.rows);
-//         res.json(processes.rows);
-//     } catch (err) {
-//         res.status(500).json({ error: err.message });
-//     }
-// });
 
 router.get('/createdByMe', async (req, res) => {
     try {
@@ -249,55 +238,68 @@ router.post('/signoff', async (req, res) => {
     try {
         const { processId, comment, picturePath } = req.body;
         const userId = req.session.user.id;
+        const userNameResult = await pool.query(
+            'SELECT name FROM users WHERE id = $1', 
+            [userId]
+        );
+        const userName = userNameResult.rows[0].name;
+
+        // Retrieve the process name based on the processId
+        const processNameResult = await pool.query(
+            'SELECT description,created_by_user_id FROM processes WHERE id = $1', 
+            [processId]
+        );
+        const processName = processNameResult.rows[0].description;
+        const createdByUserId = processNameResult.rows[0].created_by_user_id;
+
 
         await pool.query(
             'UPDATE sign_offs SET comment=$1, picture_path=$2, signed_off=TRUE WHERE process_id=$3 AND user_id=$4',
             [comment, picturePath, processId, userId]
         );
+        await pool.query(`
+        INSERT INTO notifications(user_id, process_id, message, status)
+        VALUES($1, $2, $3, 'unread')
+    `, [createdByUserId, processId, `${userName} has signed off on process ${processName}.`]);
+
+    // Check all sign-offs
+    const signOffsResults = await pool.query(`
+        SELECT * FROM sign_offs WHERE process_id = $1
+    `, [processId]);
+
+    if(signOffsResults.rows.every(row => row.signed_off)) {
+        // Send email to all parties. Use your email sending logic here.
+        console.log("All signed off");
+        // Notify the creator that everyone has signed off
+        await pool.query(`
+            INSERT INTO notifications(user_id, process_id, message, status)
+            VALUES($1, $2, $3, 'unread')
+        `, [userId, processId, `Everyone has signed off on your process, ${processName}.`]);
+    }
 
         res.json({ message: "Signoff updated successfully!" });
     } catch (err) {
+        console.error("Error in /signoff:", err);
         res.status(500).json({ error: err.message });
     }
 });
+router.get('/notifications', async (req, res) => {
+    console.log('started');
+    const notifications = await pool.query(`
+        SELECT * FROM notifications WHERE user_id = $1 AND status = 'unread'
+    `, [req.session.user.id]);
+    console.log('hello',req.session.user.id,notifications.rows);
+    res.json(notifications.rows);
+});
+router.post('/notifications/mark-as-read', async (req, res) => {
+    const { notificationId } = req.body;
+    await pool.query(`
+        UPDATE notifications SET status = 'read' WHERE id = $1
+    `, [notificationId]);
+    res.json({ message: 'Notification marked as read' });
+});
 
-// router.get('/signedOffByYou', async (req, res) => {
-//     try {
-//         // Fetch processes that the user has signed off, but the entire process isn't completed
-//         const processesResults = await pool.query(`
-//             SELECT p.*
-//             FROM processes p 
-//             JOIN sign_offs s1 ON p.id = s1.process_id 
-//             WHERE s1.user_id = $1 AND s1.signed_off = TRUE
-//             AND EXISTS (
-//                 SELECT 1 FROM sign_offs s2 
-//                 WHERE s2.process_id = p.id AND s2.signed_off = FALSE
-//             )
-//         `, [req.session.user.id]);
 
-//         const processes = processesResults.rows;
-//         for(let process of processes) {
-//             const usersResults = await pool.query(`
-//                 SELECT u.name, s.comment, s.picture_path, s.can_see_comments
-//                 FROM users u 
-//                 JOIN sign_offs s ON u.id = s.user_id 
-//                 WHERE s.process_id = $1
-//             `, [process.id]);
-
-//             // Decide if the comment should be shown or hidden based on `can_see_comments`
-//             process.users = usersResults.rows.map(user => {
-//                 return {
-//                     ...user,
-//                     comment: user.can_see_comments ? user.comment : 'Hidden'
-//                 };
-//             });
-//         }
-        
-//         res.json(processes);
-//     } catch (err) {
-//         res.status(500).json({ error: err.message });
-//     }
-// });
 router.get('/signedOffByYou', async (req, res) => {
    try {
         const processesResults = await pool.query(`

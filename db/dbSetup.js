@@ -21,7 +21,8 @@ async function createTables() {
         created_by_user_id INTEGER REFERENCES users(id)
       );
     `);
-    console.log('Processes table created successfully');
+        console.log('Processes table created successfully');
+        
 
     // Creating sign_offs table
     await pool.query(`
@@ -36,6 +37,17 @@ async function createTables() {
       );
     `);
         console.log('Sign-offs table created successfully');
+
+     await pool.query(`
+      CREATE TABLE IF NOT EXISTS notifications (
+    id SERIAL PRIMARY KEY,
+    user_id INT REFERENCES users(id),
+    process_id INT REFERENCES processes(id),
+    message TEXT,
+    status TEXT CHECK (status IN ('read', 'unread'))
+);
+    `);
+        console.log('notification table created successfully');
         
     } catch (error) {
         console.error("Error setting up the database:", error);
