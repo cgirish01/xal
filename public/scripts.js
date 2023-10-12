@@ -426,7 +426,53 @@ async function markAsRead(notificationId) {
 }
 
 
-// On page load or using setInterval:
+async function connectMetaMask() {
+    if (window.ethereum) {
+        try {
+            const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+            console.log("accounts", accounts)
+
+            if (accounts.length > 0) {
+                const response = await fetch('/api/processes/updateWallet', {
+                    method: 'POST',
+                    body: JSON.stringify({ 
+                        walletAddress: accounts[0]
+                    }),
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                console.log("response", response)
+
+                const data = await response.json();
+                if (data.success) {
+                    document.getElementById('metamask-connect').textContent = 'Connected';
+                } else {
+                    console.error("Error updating the wallet address");
+                }
+            }
+        } catch (error) {
+            console.error("Error connecting to MetaMask", error);
+        }
+    } else {
+        alert('Please install MetaMask to use this feature!');
+    }
+}
+async function updateWalletButtonStatus() {
+    try {
+        const response = await fetch(`/api/processes/checkWalletStatus`);
+        const data = await response.json();
+
+        if (data.hasWallet) {
+            document.getElementById('metamask-connect').textContent = 'Connected';
+        } else {
+            document.getElementById('metamask-connect').textContent = 'Connect MetaMask Wallet';
+        }
+    } catch (error) {
+        console.error("Error checking wallet status:", error);
+    }
+}
+async function init() {
+    await updateWalletButtonStatus();
+}
 
 function checkIfUserIsLoggedIn() {
     fetch('/api/processes/isAuthenticated')
@@ -438,6 +484,8 @@ function checkIfUserIsLoggedIn() {
             loadMyProcesses();
             loadSignoffProcesses();
             loadProcessesToBeSignedOffByYou();
+            document.addEventListener('DOMContentLoaded', init);
+
         }
     })
     .catch(error => {

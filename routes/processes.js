@@ -333,4 +333,39 @@ router.get('/signedOffByYou', async (req, res) => {
 });
 
 
+
+// Endpoint to check if user has a wallet address connected
+router.get('/checkWalletStatus/', async (req, res) => {
+    try {
+        const { userId } = req.body;
+        console.log("result before");
+        const result = await pool.query('SELECT metamask_wallet_address FROM users WHERE id = $1', [userId]);
+        console.log("result",result.rows);
+        if (result.rows.length) {
+            const address = result.rows[0].metamask_wallet_address;
+            res.send({ hasWallet: Boolean(address) });
+        } else {
+            res.status(404).send({ error: "User not found" });
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).send({ error: 'Internal server error' });
+    }
+});
+
+// Endpoint to Update Wallet Address:
+router.post('/updateWallet', async (req, res) => {
+    const { walletAddress } = req.body;
+    console.log(req.session.user.id, walletAddress)
+    try {
+        await pool.query('UPDATE users SET metamask_wallet_address = $1 WHERE id = $2', [walletAddress, req.session.user.id]);
+        res.send({ success: true });
+    } catch (error) {
+        console.error(error);
+        res.status(500).send({ error: 'Internal server error' });
+    }
+});
+
+
+
 module.exports = router;
