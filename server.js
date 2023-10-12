@@ -3,9 +3,11 @@ const userRoutes = require('./routes/users');
 const processRoutes = require('./routes/processes');
 const session = require('express-session');
 
+
 const app = express();
 const { createTables } = require('./db/dbSetup');
 createTables();
+app.use('/uploads', express.static('uploads'));
 app.use(session({
     secret: 'aVeryDifficultToGuessKey12345',  // Choose a strong secret key
     resave: false,

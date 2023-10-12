@@ -54,3 +54,9 @@ button:hover {
     border: 1px solid #ccc;
     border-radius: 5px;
 }
+.user-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 10px 0;
+}

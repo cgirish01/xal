@@ -4,6 +4,7 @@ const multer = require('multer');
 const path = require('path');
 const nodemailer = require('nodemailer');
 const router = express.Router();
+const sharp = require('sharp');
 
 
 function ensureAuthenticated(req, res, next) {
@@ -134,13 +135,45 @@ router.post('/signoff/:processId', upload.single('processImage'), async (req, re
     }
 });
 
+// router.get('/createdByMe', async (req, res) => {
+//     try {
+//         // console.log("reached created by me");
+//         // console.log(req.session.user);
+//         const processes = await pool.query('SELECT * FROM processes WHERE created_by_user_id = $1', [req.session.user.id]);
+//         console.log(processes.rows);
+//         res.json(processes.rows);
+//     } catch (err) {
+//         res.status(500).json({ error: err.message });
+//     }
+// });
+
 router.get('/createdByMe', async (req, res) => {
     try {
-        console.log("reached created by me");
-        console.log(req.session.user);
-        const processes = await pool.query('SELECT * FROM processes WHERE created_by_user_id = $1', [req.session.user.id]);
-        console.log(processes.rows);
-        res.json(processes.rows);
+        const processes = await pool.query(
+            'SELECT * FROM processes WHERE created_by_user_id = $1',
+            [req.session.user.id]
+        );
+        
+        const processesWithSignoffs = [];
+
+        for (let process of processes.rows) {
+            const signOffsResult = await pool.query(
+                `SELECT u.name AS userName, s.comment, s.picture_path 
+                 FROM sign_offs s 
+                 JOIN users u ON s.user_id = u.id 
+                 WHERE s.process_id = $1`,
+                [process.id]
+            );
+            // console.log(signOffsResult.rows);
+
+            processesWithSignoffs.push({
+                ...process,
+                signOffs: signOffsResult.rows
+            });
+        }
+        // console.log("created by me");
+        // console.log(processesWithSignoffs);
+        res.json(processesWithSignoffs);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
