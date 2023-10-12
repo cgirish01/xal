@@ -107,16 +107,8 @@ function populateUserDropdowns() {
     });
 }
 
-// populateUserDropdowns();
-
 function createNewProcess() {
-    // const users = [
-    //     document.getElementById('user1').value,
-    //     document.getElementById('user2').value,
-    //     document.getElementById('user3').value,
-    //     document.getElementById('user4').value,
-    //     document.getElementById('user5').value
-    // ];
+
     const users = [
         {id: document.getElementById('user1').value, canSeeComments: document.getElementById('user1-canSeeComments').checked},
         {id: document.getElementById('user2').value, canSeeComments: document.getElementById('user2-canSeeComments').checked},
@@ -443,7 +435,6 @@ function checkIfUserIsLoggedIn() {
         if (data.isAuthenticated) {
             populateUserDropdowns();
             loadNotifications();
-            populateUserDropdowns();
             loadMyProcesses();
             loadSignoffProcesses();
             loadProcessesToBeSignedOffByYou();

@@ -282,7 +282,7 @@ router.get('/notifications', async (req, res) => {
     const notifications = await pool.query(`
         SELECT * FROM notifications WHERE user_id = $1 AND status = 'unread'
     `, [req.session.user.id]);
-    console.log('hello',req.session.user.id,notifications.rows);
+    // console.log('hello',req.session.user.id,notifications.rows);
     res.json(notifications.rows);
 });
 router.post('/notifications/mark-as-read', async (req, res) => {
