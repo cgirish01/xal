@@ -50,7 +50,6 @@ button which will connet to your metabase wallet
 
 - Ensure the process creator receives a notification on their page when anyone signs off, and notify all parties involved via email when everyone
 signs off.
-![email to all](./screenshots/notifi.jpg)
 
 ![email to all](./screenshots/emailall.jpg)
 
@@ -92,4 +91,31 @@ signs off.
  ![server starting page](./screenshots/userdb.jpg)
 
  - whenever user login if status is unread, he will see notification of those messages on his dashboard
+
+
+
+## Few imp things 
+-  i was using docker postgres here
+```
+docker run --name some-postgres -e POSTGRES_PASSWORD=mysecretpassword -p 5432:5432 -d postgres
+```
+
+### you will be needing some files/ folders in like, which u can see in .gitignore
+  - .env
+  - /upload
+- .env will look like this
+  - DB_USER=
+  - DB_HOST=
+  - DB_NAME=
+  - DB_PASSWORD=
+  - DB_PORT=
+  - SMTP_HOST=
+  - SMTP_PORT=
+  - SMTP_USER=
+  - SMTP_PASS=
+- for emailing i have used this `Ethereal Email` for more `https://ethereal.email/`
+
+ ### And did i mention we even have a logout here(top right) 👉🏻👈🏻
+
+ ![server starting page](./screenshots/signout.jpg)
 
