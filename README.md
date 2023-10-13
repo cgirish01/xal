@@ -46,10 +46,12 @@ button which will connet to your metabase wallet
 - Add the functionality for users to add comments and upload a mandatory picture during the sign-off process.
 ![need signof](./screenshots/needsignof.jpg)
 - Allow the process creator to select which users can see the comments.
-### this can be seen in first screenshot, while creating porocess user will have option to hide comment or make them visible
+  - this can be seen in first screenshot, while creating porocess user will have option to hide comment or make them visible
 
 - Ensure the process creator receives a notification on their page when anyone signs off, and notify all parties involved via email when everyone
 signs off.
+![email to all](./screenshots/notifi.jpg)
+
 ![email to all](./screenshots/emailall.jpg)
 
 ### when ever someone signs off any process creator will receive such notification, creator will see all unread notifications at time of login, and once he clicks notification will disappear and will be marked as read
