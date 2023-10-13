@@ -44,6 +44,7 @@ button which will connet to your metabase wallet
 - Allow the user to choose the five other users from a dropdown list and send email notifications to each user when a new process is created.
 ![dropdown](./screenshots/dropdown.jpg)
 - Add the functionality for users to add comments and upload a mandatory picture during the sign-off process.
+  - here i am resizing image to smaller size to make it look better in ui, we are storing orifginal image too
 ![need signof](./screenshots/needsignof.jpg)
 - Allow the process creator to select which users can see the comments.
   - this can be seen in first screenshot, while creating porocess user will have option to hide comment or make them visible
