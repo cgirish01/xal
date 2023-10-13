@@ -99,6 +99,9 @@ signs off.
 ```
 docker run --name some-postgres -e POSTGRES_PASSWORD=mysecretpassword -p 5432:5432 -d postgres
 ```
+- to run this code
+  - gir clone then
+  - ```node server.js     ```
 
 ### you will be needing some files/ folders in like, which u can see in .gitignore
   - .env
