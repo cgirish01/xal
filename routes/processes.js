@@ -259,6 +259,14 @@ router.post('/signoff', async (req, res) => {
         SELECT * FROM sign_offs WHERE process_id = $1
     `, [processId]);
         
+    const userEmailsResults = await pool.query(`
+        SELECT DISTINCT u.email
+        FROM users u
+        JOIN sign_offs s ON u.id = s.user_id
+        WHERE s.process_id = $1
+    `, [processId]);
+        const userEmails = userEmailsResults.rows.map(row => row.email);
+        
     const creatorEmailsResults = await pool.query('SELECT email FROM users WHERE id = $1', [createdByUserId]);
     const completionEmail = creatorEmailsResults.rows.map(row => row.email);
     console.log("emails seent");
@@ -269,7 +277,8 @@ router.post('/signoff', async (req, res) => {
         // Send email to all parties. Use your email sending logic here.
         // console.log("All signed off");
 
-        sendEmailToUsers(completionEmail, "everyone signed of", "everyone signed off for process" ,processName);
+        sendEmailToUsers(completionEmail, "everyone signed of", "everyone signed off for process", processName);
+        sendEmailToUsers(userEmails, "Everyone signed off", "Everyone signed off for process: " + processName);
         
         await pool.query(`
             INSERT INTO notifications(user_id, process_id, message, status)
