@@ -70,15 +70,7 @@ function hideAllForms() {
     document.getElementById('login-section').style.display = 'none';
 }
 
-function ensureAuthenticated(req, res, next) {
-    if (req.session && req.session.user) {
-        next();  // User is authenticated, proceed to next middleware/route handler
-    } else {
-        res.status(401).send('Unauthorized');  // No session user found, respond with 401
-    }
-}
-
-
+//function to get dropdowns when we are selecting 5 users
 function populateUserDropdowns() {
     fetch('/api/processes/users')
     .then(response => {
@@ -107,6 +99,7 @@ function populateUserDropdowns() {
     });
 }
 
+// function to create new process
 function createNewProcess() {
 
     const users = [
@@ -150,7 +143,7 @@ function createNewProcess() {
     });
 }
 
-
+// function to submit sign off
 async function submitSignOff(processId) {
     console.log("processId")
     // const processId = event.target.parentElement.getAttribute('data-process-id');
@@ -221,8 +214,7 @@ async function submitSignOff(processId) {
     });
 }
 
-
-
+// function to load processes created by current user
 function loadMyProcesses() {
     fetch('/api/processes/createdByMe')
     .then(response => response.json())
@@ -238,6 +230,8 @@ function loadMyProcesses() {
         alert('Error: ' + error);
     });
 }
+
+// helper function for loadMyProcesses to take care of html part
 function displayProcessWithUsers(process, container) {
     const processContainer = document.createElement('div');
 
@@ -272,8 +266,7 @@ function displayProcessWithUsers(process, container) {
     container.appendChild(processContainer);
 }
 
-
-
+// function to load processes that are already sign off by current user
 function loadSignoffProcesses() {
     fetch('/api/processes/needsSignoff')
     .then(response => response.json())
@@ -290,8 +283,7 @@ function loadSignoffProcesses() {
     });
 }
 
-
-
+// helper function for loadSignoffProcesses to take care of html part
 function displayProcessForSignoff(process, container) {
     const processContainer = document.createElement('div');
     processContainer.classList.add('process-item');
@@ -351,6 +343,7 @@ function displayProcessForSignoff(process, container) {
     container.appendChild(processContainer);
 }
 
+// function to load processes that needed to be signed off by current user
 function loadProcessesToBeSignedOffByYou() {
     fetch('/api/processes/signedOffByYou')
     .then(response => response.json())
@@ -366,7 +359,7 @@ function loadProcessesToBeSignedOffByYou() {
     });
 }
 
-
+// function to load notifications
 async function loadNotifications() {
     try {
         const response = await fetch('/api/processes/notifications');
@@ -386,6 +379,7 @@ async function loadNotifications() {
     }
 }
 
+// helper function for loadNotifications to take care of display
 function displayNotifications(notifications) {
     const notificationsList = document.getElementById('notifications-list');
     if (!notificationsList) {
@@ -403,6 +397,7 @@ function displayNotifications(notifications) {
     });
 }
 
+// function to mark notification as read
 async function markAsRead(notificationId) {
     try {
         const response = await fetch('/api/processes/notifications/mark-as-read', {
@@ -425,7 +420,7 @@ async function markAsRead(notificationId) {
     }
 }
 
-
+// function to connect metamask
 async function connectMetaMask() {
     if (window.ethereum) {
         try {
@@ -456,6 +451,8 @@ async function connectMetaMask() {
         alert('Please install MetaMask to use this feature!');
     }
 }
+
+// function to check wallet status
 async function updateWalletButtonStatus() {
     try {
         const response = await fetch(`/api/processes/checkWalletStatus`);
@@ -474,6 +471,7 @@ async function init() {
     await updateWalletButtonStatus();
 }
 
+// function to logout user
 async function logoutUser() {
     try {
         const response = await fetch('/api/processes/logout', {
@@ -514,15 +512,6 @@ function checkIfUserIsLoggedIn() {
     });
 }
 
-// Call this function when page loads or when you need to check
+
 checkIfUserIsLoggedIn();
 
-// if (userIsLoggedIn) {  // Replace `userIsLoggedIn` with whatever check you use on the client side
-//     populateUserDropdowns();
-// }
-
-// loadNotifications();
-// populateUserDropdowns();
-// loadMyProcesses();
-// loadSignoffProcesses();
-// loadProcessesToBeSignedOffByYou();

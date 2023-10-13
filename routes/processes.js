@@ -8,6 +8,7 @@ const sharp = require('sharp');
 require('dotenv').config();
 
 
+// Middleware to check if the user is authenticated
 function ensureAuthenticated(req, res, next) {
     if (!req.session || !req.session.user) {
         return res.status(401).json({ error: 'Unauthorized' });
@@ -44,7 +45,7 @@ const transporter = nodemailer.createTransport({
     }
 });
 
-
+// Function to send emails to users
 const sendEmailToUsers = async (userEmails, subject, text, processInfo) => {
   let mailOptions = {
     from: 'lori.homenick88@ethereal.email',
@@ -76,6 +77,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
+// Endpoint to upload an signature
 router.post('/uploadImage', upload.single('image'), async (req, res) => {
     if (!req.file) {
         return res.status(400).json({ error: 'No file uploaded.' });
@@ -97,7 +99,7 @@ router.post('/uploadImage', upload.single('image'), async (req, res) => {
     }
 });
 
-
+// Endpoint to get all processes
 router.get('/', async (req, res) => {
     try {
         console.log(req.session.user);
@@ -109,6 +111,8 @@ router.get('/', async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
+
+// Endpoint to create a new process
 router.post('/', async (req, res) => {
     try {
         console.log("reached hereeeeeeee");
@@ -147,7 +151,7 @@ router.post('/', async (req, res) => {
 });
 
 
-
+// Endpoint to get processes created by the current user
 router.get('/createdByMe', async (req, res) => {
     try {
         const processes = await pool.query(
@@ -180,6 +184,7 @@ router.get('/createdByMe', async (req, res) => {
     }
 });
 
+// Endpoint to get processes that need signoff by the current user
 router.get('/needsSignoff', async (req, res) => {
     try {
         const processesResults = await pool.query(`
@@ -220,6 +225,7 @@ router.get('/needsSignoff', async (req, res) => {
     }
 });
 
+// Endpoint to sign off on a process (when a user signs off any process)
 router.post('/signoff', async (req, res) => {
     try {
         const { processId, comment, picturePath } = req.body;
@@ -268,7 +274,7 @@ router.post('/signoff', async (req, res) => {
         await pool.query(`
             INSERT INTO notifications(user_id, process_id, message, status)
             VALUES($1, $2, $3, 'unread')
-        `, [userId, processId, `Everyone has signed off on your process, ${processName}.`]);
+        `, [createdByUserId, processId, `Everyone has signed off on your process, ${processName}.`]);
     }
 
         res.json({ message: "Signoff updated successfully!" });
@@ -277,6 +283,8 @@ router.post('/signoff', async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
+
+// Endpoint to get notifications for the current user
 router.get('/notifications', async (req, res) => {
     console.log('started');
     const notifications = await pool.query(`
@@ -285,6 +293,8 @@ router.get('/notifications', async (req, res) => {
     // console.log('hello',req.session.user.id,notifications.rows);
     res.json(notifications.rows);
 });
+
+// Endpoint to mark a notification as read
 router.post('/notifications/mark-as-read', async (req, res) => {
     const { notificationId } = req.body;
     await pool.query(`
@@ -293,7 +303,7 @@ router.post('/notifications/mark-as-read', async (req, res) => {
     res.json({ message: 'Notification marked as read' });
 });
 
-
+// endpoint to get processes previously signed off by you
 router.get('/signedOffByYou', async (req, res) => {
    try {
         const processesResults = await pool.query(`
@@ -332,8 +342,6 @@ router.get('/signedOffByYou', async (req, res) => {
     }
 });
 
-
-
 // Endpoint to check if user has a wallet address connected
 router.get('/checkWalletStatus/', async (req, res) => {
     try {
@@ -365,6 +373,8 @@ router.post('/updateWallet', async (req, res) => {
         res.status(500).send({ error: 'Internal server error' });
     }
 });
+
+// Endpoint to logout
 router.post('/logout', (req, res) => {
     req.session.destroy((err) => {
         if(err) {
