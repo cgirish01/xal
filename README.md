@@ -102,6 +102,7 @@ docker run --name some-postgres -e POSTGRES_PASSWORD=mysecretpassword -p 5432:54
 - to run this code
   - gir clone then
   - ```node server.js     ```
+  - i am not using react, so reloaded will be needed to see change
 
 ### you will be needing some files/ folders in like, which u can see in .gitignore
   - .env
